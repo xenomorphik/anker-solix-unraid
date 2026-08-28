@@ -1,0 +1,51 @@
+<?xml version='1.0' encoding='utf-8'?>
+<!DOCTYPE PLUGIN [
+  <!ENTITY name      "anker-solix">
+  <!ENTITY author    "Conductor Architect">
+  <!ENTITY version   "2026.08.28">
+  <!ENTITY launch    "Settings/AnkerSolix">
+  <!ENTITY pluginurl "https://raw.githubusercontent.com/user/anker-solix-unraid/main/anker-solix.plg">
+]>
+
+<plugin name="&name;" author="&author;" version="&version;" launch="&launch;" pluginurl="&pluginurl;" min="6.9.0">
+
+<CHANGELOG>
+### 2026.08.28
+- Initial MVP release of Unraid Anker Solix Power Monitor & Graceful Shutdown Plugin.
+</CHANGELOG>
+
+<!-- Pre-installation check & directory initialization -->
+<FILE Run="/bin/bash">
+<INLINE>
+mkdir -p /boot/config/plugins/&name;
+mkdir -p /tmp/&name;
+</INLINE>
+</FILE>
+
+<!-- Main plugin package installation -->
+<FILE Name="/boot/config/plugins/&name;/&name;-&version;.txz" Run="upkg">
+<URL>https://github.com/user/anker-solix-unraid/releases/download/v&version;/&name;-&version;.txz</URL>
+</FILE>
+
+<!-- Post-installation script to start monitoring daemon -->
+<FILE Run="/bin/bash">
+<INLINE>
+echo "Initializing Anker Solix Plugin..."
+if [ -f /usr/local/emhttp/plugins/&name;/solix_daemon.py ]; then
+    /usr/local/emhttp/plugins/&name;/venv/bin/python3 /usr/local/emhttp/plugins/&name;/solix_daemon.py &amp;
+fi
+</INLINE>
+</FILE>
+
+<!-- Plugin Removal script -->
+<FILE Run="/bin/bash" Method="remove">
+<INLINE>
+echo "Removing Anker Solix Plugin..."
+pkill -f "solix_daemon.py" || true
+rm -rf /usr/local/emhttp/plugins/&name;
+rm -rf /tmp/&name;
+rm -f /boot/config/plugins/&name;/&name;-&version;.txz
+</INLINE>
+</FILE>
+
+</plugin>

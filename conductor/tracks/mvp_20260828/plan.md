@@ -1,13 +1,13 @@
 # Implementation Plan: Initial MVP Implementation - Unraid Anker Solix Plugin
 
 ## Phase 1: Environment & Project Scaffolding
-- [ ] Task: Initialize Python virtual environment & dependencies
-  - [ ] Create `requirements.txt` with `anker-solix-api`, `aiohttp`, `pytest`, `pytest-asyncio`
-  - [ ] Set up local virtual environment structure in project
-- [ ] Task: Create Unraid Plugin Directory Layout
-  - [ ] Create `usr/local/emhttp/plugins/anker-solix/` directory tree
-  - [ ] Create `.plg` manifest template (`anker-solix.plg`)
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Initialize Python virtual environment & dependencies
+  - [x] Create `requirements.txt` with `anker-solix-api`, `aiohttp`, `pytest`, `pytest-asyncio`
+  - [x] Set up local virtual environment structure in project
+- [x] Task: Create Unraid Plugin Directory Layout
+  - [x] Create `usr/local/emhttp/plugins/anker-solix/` directory tree
+  - [x] Create `.plg` manifest template (`anker-solix.plg`)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Phase 2: Core Monitoring Daemon & Anker API Integration (TDD)
 - [ ] Task: Write Tests for Anker Solix API Wrapper & Power Evaluation (TDD)
