@@ -10,16 +10,16 @@
 - [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Phase 2: Core Monitoring Daemon & Anker API Integration (TDD)
-- [ ] Task: Write Tests for Anker Solix API Wrapper & Power Evaluation (TDD)
-  - [ ] Create test fixtures with mocked Anker Solix REST API responses in `tests/test_solix_api.py`
-  - [ ] Write unit tests for power loss detection & threshold calculation logic in `tests/test_power_monitor.py`
-- [ ] Task: Implement Anker Solix API Client Wrapper (`solix_client.py`)
-  - [ ] Implement authentication session handling and credential loading
-  - [ ] Implement site/device telemetry fetcher and JSON state formatter
-- [ ] Task: Implement Background Daemon Loop (`solix_daemon.py`)
-  - [ ] Implement async polling loop writing to `/tmp/anker-solix/status.json`
-  - [ ] Implement threshold checking & multi-stage shutdown trigger hooks
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Write Tests for Anker Solix API Wrapper & Power Evaluation (TDD)
+  - [x] Create test fixtures with mocked Anker Solix REST API responses in `tests/test_solix_api.py`
+  - [x] Write unit tests for power loss detection & threshold calculation logic in `tests/test_power_monitor.py`
+- [x] Task: Implement Anker Solix API Client Wrapper (`solix_client.py`)
+  - [x] Implement authentication session handling and credential loading
+  - [x] Implement site/device telemetry fetcher and JSON state formatter
+- [x] Task: Implement Background Daemon Loop (`solix_daemon.py`)
+  - [x] Implement async polling loop writing to `/tmp/anker-solix/status.json`
+  - [x] Implement threshold checking & multi-stage shutdown trigger hooks
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Phase 3: Native Unraid WebGUI Settings & Status Page
 - [ ] Task: Write Tests for Config Reader & Status JSON Parser (TDD)
