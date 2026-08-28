@@ -31,13 +31,13 @@
 - [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Phase 4: Multi-Stage Graceful Shutdown & Notifications
-- [ ] Task: Write Tests for Shutdown Handler & Notification Sender (TDD)
-  - [ ] Create unit tests verifying multi-stage shutdown execution order (Notification -> Docker -> VM -> Array -> Poweroff)
-- [ ] Task: Implement Graceful Shutdown Executor (`shutdown_handler.py`)
-  - [ ] Implement Unraid native `/usr/local/emhttp/webGui/scripts/notify` call
-  - [ ] Implement `docker stop` and `virsh shutdown` hooks
-  - [ ] Implement Array stop command and system `/sbin/poweroff` trigger
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Write Tests for Shutdown Handler & Notification Sender (TDD)
+  - [x] Create unit tests verifying multi-stage shutdown execution order (Notification -> Docker -> VM -> Array -> Poweroff)
+- [x] Task: Implement Graceful Shutdown Executor (`shutdown_handler.py`)
+  - [x] Implement Unraid native `/usr/local/emhttp/webGui/scripts/notify` call
+  - [x] Implement `docker stop` and `virsh shutdown` hooks
+  - [x] Implement Array stop command and system `/sbin/poweroff` trigger
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Phase 5: Package Bundling & Integration Testing
 - [ ] Task: Build Release Package Generator
