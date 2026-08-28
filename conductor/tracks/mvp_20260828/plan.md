@@ -22,13 +22,13 @@
 - [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Phase 3: Native Unraid WebGUI Settings & Status Page
-- [ ] Task: Write Tests for Config Reader & Status JSON Parser (TDD)
-  - [ ] Create unit tests for parsing and validating plugin configuration file (`anker-solix.cfg`)
-- [ ] Task: Build WebGUI Settings Page (`AnkerSolix.page` & `AnkerSolix.php`)
-  - [ ] Implement configuration form fields (Email, Password, Country, Thresholds)
-  - [ ] Implement live AJAX telemetry widget reading `/tmp/anker-solix/status.json`
-  - [ ] Implement manual "Cancel Countdown" button endpoint
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Write Tests for Config Reader & Status JSON Parser (TDD)
+  - [x] Create unit tests for parsing and validating plugin configuration file (`anker-solix.cfg`)
+- [x] Task: Build WebGUI Settings Page (`AnkerSolix.page` & `AnkerSolix.php`)
+  - [x] Implement configuration form fields (Email, Password, Country, Thresholds)
+  - [x] Implement live AJAX telemetry widget reading `/tmp/anker-solix/status.json`
+  - [x] Implement manual "Cancel Countdown" button endpoint
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Phase 4: Multi-Stage Graceful Shutdown & Notifications
 - [ ] Task: Write Tests for Shutdown Handler & Notification Sender (TDD)

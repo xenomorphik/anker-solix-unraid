@@ -1,0 +1,98 @@
+Menu="Utilities"
+Title="Anker Solix Power Monitor"
+Icon="anker-solix.png"
+---
+<?php
+$plugin = "anker-solix";
+$cfg_file = "/boot/config/plugins/".$plugin."/anker-solix.cfg";
+$cfg = parse_ini_file($cfg_file) ?: [];
+
+$status_file = "/tmp/anker-solix/status.json";
+$status = json_decode(@file_get_contents($status_file), true) ?: [
+  "power_source" => "Unknown",
+  "battery_percentage" => 0,
+  "grid_power_w" => 0,
+  "solar_power_w" => 0,
+  "load_power_w" => 0,
+  "evaluation" => ["state" => "INITIALIZING", "reason" => "Waiting for daemon"]
+];
+?>
+
+<div class="row">
+  <div class="col-md-6">
+    <div class="panel panel-default">
+      <div class="panel-heading">
+        <h3 class="panel-title">Live System Telemetry</h3>
+      </div>
+      <div class="panel-body">
+        <table class="table">
+          <tr>
+            <td><strong>Power Source:</strong></td>
+            <td><span class="label label-<?=($status['power_source'] == 'AC Grid') ? 'success' : 'warning'?>"><?=htmlspecialchars($status['power_source'])?></span></td>
+          </tr>
+          <tr>
+            <td><strong>Battery Charge:</strong></td>
+            <td><strong><?=intval($status['battery_percentage'])?>%</strong></td>
+          </tr>
+          <tr>
+            <td><strong>Grid Input Power:</strong></td>
+            <td><?=floatval($status['grid_power_w'])?> W</td>
+          </tr>
+          <tr>
+            <td><strong>Solar Generation:</strong></td>
+            <td><?=floatval($status['solar_power_w'])?> W</td>
+          </tr>
+          <tr>
+            <td><strong>Home / Load Draw:</strong></td>
+            <td><?=floatval($status['load_power_w'])?> W</td>
+          </tr>
+          <tr>
+            <td><strong>Monitor State:</strong></td>
+            <td><?=htmlspecialchars($status['evaluation']['reason'] ?? 'Normal')?></td>
+          </tr>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-6">
+    <form markdown="1" method="POST" action="/update.php" target="progressFrame">
+      <input type="hidden" name="#file" value="<?=$cfg_file?>">
+      
+      <div class="panel panel-default">
+        <div class="panel-heading">
+          <h3 class="panel-title">Anker Solix Credentials & Thresholds</h3>
+        </div>
+        <div class="panel-body">
+          <p>
+            <label>Anker Account Email / Username:</label>
+            <input type="email" name="ANKERUSER" value="<?=htmlspecialchars($cfg['ANKERUSER'] ?? '')?>" placeholder="user@example.com" required>
+          </p>
+          <p>
+            <label>Anker Account Password:</label>
+            <input type="password" name="ANKERPASSWORD" value="<?=htmlspecialchars($cfg['ANKERPASSWORD'] ?? '')?>" required>
+          </p>
+          <p>
+            <label>Anker Country Code:</label>
+            <input type="text" name="ANKERCOUNTRY" value="<?=htmlspecialchars($cfg['ANKERCOUNTRY'] ?? 'us')?>" size="4" required>
+          </p>
+          <p>
+            <label>Polling Interval (seconds):</label>
+            <input type="number" name="POLL_INTERVAL" value="<?=intval($cfg['POLL_INTERVAL'] ?? 30)?>" min="10" max="300" required>
+          </p>
+          <p>
+            <label>Shutdown Delay on Battery (minutes):</label>
+            <input type="number" name="TIME_LIMIT_MIN" value="<?=intval($cfg['TIME_LIMIT_MIN'] ?? 10)?>" min="1" max="120" required>
+          </p>
+          <p>
+            <label>Minimum Battery % Threshold:</label>
+            <input type="number" name="BATTERY_LIMIT_PCT" value="<?=intval($cfg['BATTERY_LIMIT_PCT'] ?? 20)?>" min="5" max="90" required>
+          </p>
+          <p>
+            <input type="submit" value="Apply Settings" class="btn btn-primary">
+          </p>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
