@@ -40,8 +40,8 @@
 - [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Phase 5: Package Bundling & Integration Testing
-- [ ] Task: Build Release Package Generator
-  - [ ] Create packaging script to bundle virtualenv wheels and PHP assets into `.txz` / `.plg`
-- [ ] Task: End-to-End Simulation Test
-  - [ ] Execute full test suite verifying mock outage detection, notification dispatch, and WebGUI status update
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Build Release Package Generator
+  - [x] Create packaging script to bundle virtualenv wheels and PHP assets into `.txz` / `.plg`
+- [x] Task: End-to-End Simulation Test
+  - [x] Execute full test suite verifying mock outage detection, notification dispatch, and WebGUI status update
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
