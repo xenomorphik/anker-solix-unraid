@@ -37,12 +37,25 @@ if ($action === 'test_auth') {
     }
 
     $plugin_dir = "/usr/local/emhttp/plugins/anker-solix";
-    $venv_python = "$plugin_dir/venv/bin/python3";
-    $python = file_exists($venv_python) ? $venv_python : "python3";
+    $python_candidates = [
+        "$plugin_dir/venv/bin/python3",
+        "/usr/bin/python3",
+        "/usr/local/bin/python3",
+        "/usr/bin/python"
+    ];
+
+    $python = "python3";
+    foreach ($python_candidates as $candidate) {
+        if (file_exists($candidate) && is_executable($candidate)) {
+            $python = $candidate;
+            break;
+        }
+    }
+
     $client_script = "$plugin_dir/solix_client.py";
 
     $cmd = sprintf(
-        "%s %s --test-auth --user %s --password %s --country %s 2>&1",
+        "export PATH=$PATH:/usr/local/bin:/usr/bin:/bin; %s %s --test-auth --user %s --password %s --country %s 2>&1",
         escapeshellcmd($python),
         escapeshellarg($client_script),
         escapeshellarg($user),
