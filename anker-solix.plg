@@ -11,7 +11,7 @@
 
 <CHANGELOG>
 ### 2026.08.28
-- Initial MVP release of Unraid Anker Solix Power Monitor & Graceful Shutdown Plugin.
+- Initial MVP release of Unraid Anker Solix Power Monitor &amp; Graceful Shutdown Plugin.
 </CHANGELOG>
 
 <!-- Pre-installation check & directory initialization -->
@@ -24,7 +24,7 @@ mkdir -p /tmp/&name;
 
 <!-- Main plugin package installation -->
 <FILE Name="/boot/config/plugins/&name;/&name;-&version;.txz" Run="upkg">
-<URL>https://github.com/xenomorphik/anker-solix-unraid/releases/download/v&version;/&name;-&version;.txz</URL>
+<URL>https://raw.githubusercontent.com/xenomorphik/anker-solix-unraid/main/dist/&name;-&version;.txz</URL>
 </FILE>
 
 <!-- Post-installation script to start monitoring daemon -->
