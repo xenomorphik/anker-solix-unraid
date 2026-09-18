@@ -23,7 +23,7 @@ mkdir -p /tmp/&name;
 </FILE>
 
 <!-- Main plugin package installation -->
-<FILE Name="/boot/config/plugins/&name;/&name;-&version;.txz" Run="upkg">
+<FILE Name="/boot/config/plugins/&name;/&name;-&version;.txz" Run="installpkg">
 <URL>https://raw.githubusercontent.com/xenomorphik/anker-solix-unraid/main/dist/&name;-&version;.txz</URL>
 </FILE>
 
@@ -32,6 +32,10 @@ mkdir -p /tmp/&name;
 <INLINE>
 echo "Initializing Anker Solix Plugin..."
 if [ -f /usr/local/emhttp/plugins/&name;/solix_daemon.py ]; then
+    if [ ! -d /usr/local/emhttp/plugins/&name;/venv ]; then
+        python3 -m venv /usr/local/emhttp/plugins/&name;/venv
+        /usr/local/emhttp/plugins/&name;/venv/bin/pip install --quiet anker-solix-api aiohttp || true
+    fi
     /usr/local/emhttp/plugins/&name;/venv/bin/python3 /usr/local/emhttp/plugins/&name;/solix_daemon.py &amp;
 fi
 </INLINE>
