@@ -53,9 +53,17 @@ if ($action === 'test_auth') {
         }
     }
 
-    if (!$python) {
+    if (!$python || !@file_exists($python)) {
         $which_python = trim((string)@shell_exec("command -v python3 || command -v python"));
-        $python = !empty($which_python) ? $which_python : "/usr/bin/python3";
+        if (!empty($which_python) && @file_exists($which_python)) {
+            $python = $which_python;
+        } else {
+            echo json_encode([
+                "success" => false,
+                "message" => "Python 3 is missing on your Unraid server. Please re-install the anker-solix plugin to auto-install Python 3."
+            ]);
+            exit;
+        }
     }
 
     $client_script = "$plugin_dir/solix_client.py";

@@ -2,7 +2,7 @@
 <!DOCTYPE PLUGIN [
   <!ENTITY name      "anker-solix">
   <!ENTITY author    "Conductor Architect">
-  <!ENTITY version   "2026.09.18.3">
+  <!ENTITY version   "2026.09.18.4">
   <!ENTITY launch    "Settings/AnkerSolix">
   <!ENTITY pluginurl "https://raw.githubusercontent.com/xenomorphik/anker-solix-unraid/main/anker-solix.plg">
 ]>
@@ -10,6 +10,8 @@
 <plugin name="&name;" author="&author;" version="&version;" launch="&launch;" pluginurl="&pluginurl;" min="6.9.0">
 
 <CHANGELOG>
+### 2026.09.18.4
+- Add auto-installation of Python 3 package for Unraid systems missing python3.
 ### 2026.09.18.3
 - Fix PHP double-quote variable string interpolation in shell_exec PATH definition.
 ### 2026.09.18.2
@@ -27,6 +29,17 @@
 <INLINE>
 mkdir -p /boot/config/plugins/&name;
 mkdir -p /tmp/&name;
+
+# Ensure Python 3 is installed on Unraid
+if ! command -v python3 &amp;&gt;/dev/null; then
+    echo "Python 3 is required by Anker Solix plugin. Downloading Python 3 package for Unraid..."
+    PYTHON_PKG="python3-3.9.10-x86_64-1.txz"
+    PYTHON_URL="https://slackware.uk/slackware/slackware64-15.0/slackware64/d/${PYTHON_PKG}"
+    if [ ! -f "/boot/config/plugins/&name;/${PYTHON_PKG}" ]; then
+        curl -sSL "$PYTHON_URL" -o "/boot/config/plugins/&name;/${PYTHON_PKG}"
+    fi
+    installpkg "/boot/config/plugins/&name;/${PYTHON_PKG}"
+fi
 </INLINE>
 </FILE>
 
