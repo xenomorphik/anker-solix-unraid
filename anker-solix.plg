@@ -2,7 +2,7 @@
 <!DOCTYPE PLUGIN [
   <!ENTITY name      "anker-solix">
   <!ENTITY author    "Conductor Architect">
-  <!ENTITY version   "2026.09.18">
+  <!ENTITY version   "2026.09.18.1">
   <!ENTITY launch    "Settings/AnkerSolix">
   <!ENTITY pluginurl "https://raw.githubusercontent.com/xenomorphik/anker-solix-unraid/main/anker-solix.plg">
 ]>
@@ -10,6 +10,8 @@
 <plugin name="&name;" author="&author;" version="&version;" launch="&launch;" pluginurl="&pluginurl;" min="6.9.0">
 
 <CHANGELOG>
+### 2026.09.18.1
+- Add Test Credentials feature to WebGUI settings page and API client.
 ### 2026.09.18
 - Fix Slackware package compression to native XZ format and update installation hooks.
 ### 2026.08.28

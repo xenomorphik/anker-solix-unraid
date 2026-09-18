@@ -90,9 +90,47 @@ $status = json_decode(@file_get_contents($status_file), true) ?: [
           </p>
           <p>
             <input type="submit" value="Apply Settings" class="btn btn-primary">
+            <button type="button" id="test-auth-btn" class="btn btn-default" onclick="testAnkerAuth()">Test Credentials</button>
           </p>
+          <div id="auth-test-result" style="display:none; margin-top:10px;"></div>
         </div>
       </div>
     </form>
   </div>
 </div>
+
+<script>
+function testAnkerAuth() {
+    var user = $('input[name="ANKERUSER"]').val();
+    var pass = $('input[name="ANKERPASSWORD"]').val();
+    var country = $('input[name="ANKERCOUNTRY"]').val() || 'us';
+    
+    var $res = $('#auth-test-result');
+    var $btn = $('#test-auth-btn');
+
+    if (!user || !pass) {
+        $res.removeClass().addClass('alert alert-warning').html('Please fill in Email and Password before testing.').show();
+        return;
+    }
+
+    $btn.prop('disabled', true).text('Testing Login...');
+    $res.removeClass().addClass('alert alert-info').html('Connecting to Anker Solix API...').show();
+
+    $.post('/plugins/anker-solix/AnkerSolix.php?action=test_auth', {
+        user: user,
+        password: pass,
+        country: country
+    }, function(data) {
+        $btn.prop('disabled', false).text('Test Credentials');
+        if (data && data.success) {
+            $res.removeClass().addClass('alert alert-success').html('<strong>✓ Success:</strong> ' + data.message);
+        } else {
+            var msg = (data && data.message) ? data.message : 'Authentication failed.';
+            $res.removeClass().addClass('alert alert-danger').html('<strong>✗ Error:</strong> ' + msg);
+        }
+    }, 'json').fail(function() {
+        $btn.prop('disabled', false).text('Test Credentials');
+        $res.removeClass().addClass('alert alert-danger').html('<strong>✗ Error:</strong> Failed to communicate with plugin backend.');
+    });
+}
+</script>

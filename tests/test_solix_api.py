@@ -52,6 +52,18 @@ class TestSolixClient(unittest.TestCase):
         self.assertEqual(formatted["battery_percentage"], 40)
         self.assertTrue(formatted["on_battery"])
 
+    def test_authenticate_empty(self):
+        import asyncio
+        empty_client = SolixClient(username="", password="")
+        result = asyncio.run(empty_client.authenticate())
+        self.assertFalse(result["success"])
+        self.assertIn("empty", result["message"].lower())
+
+    def test_authenticate_simulated(self):
+        import asyncio
+        result = asyncio.run(self.client.authenticate())
+        self.assertIn("success", result)
+
 
 if __name__ == '__main__':
     unittest.main()

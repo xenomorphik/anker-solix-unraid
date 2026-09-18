@@ -24,4 +24,43 @@ if ($action === 'cancel_shutdown') {
     echo json_encode(["status" => "CANCELLED", "message" => "Pending shutdown cancelled by user."]);
     exit;
 }
+
+if ($action === 'test_auth') {
+    header('Content-Type: application/json');
+    $user = $_POST['user'] ?? $_GET['user'] ?? '';
+    $pass = $_POST['password'] ?? $_GET['password'] ?? '';
+    $country = $_POST['country'] ?? $_GET['country'] ?? 'us';
+
+    if (empty($user) || empty($pass)) {
+        echo json_encode(["success" => false, "message" => "Please enter both Username and Password before testing."]);
+        exit;
+    }
+
+    $plugin_dir = "/usr/local/emhttp/plugins/anker-solix";
+    $venv_python = "$plugin_dir/venv/bin/python3";
+    $python = file_exists($venv_python) ? $venv_python : "python3";
+    $client_script = "$plugin_dir/solix_client.py";
+
+    $cmd = sprintf(
+        "%s %s --test-auth --user %s --password %s --country %s 2>&1",
+        escapeshellcmd($python),
+        escapeshellarg($client_script),
+        escapeshellarg($user),
+        escapeshellarg($pass),
+        escapeshellarg($country)
+    );
+
+    $output = shell_exec($cmd);
+    $result = json_decode($output, true);
+
+    if (is_array($result)) {
+        echo json_encode($result);
+    } else {
+        echo json_encode([
+            "success" => false,
+            "message" => "Auth test output error: " . ($output ?: "Unknown error")
+        ]);
+    }
+    exit;
+}
 ?>
