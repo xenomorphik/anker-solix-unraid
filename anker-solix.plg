@@ -2,7 +2,7 @@
 <!DOCTYPE PLUGIN [
   <!ENTITY name      "anker-solix">
   <!ENTITY author    "Conductor Architect">
-  <!ENTITY version   "2026.09.18.2">
+  <!ENTITY version   "2026.09.18.3">
   <!ENTITY launch    "Settings/AnkerSolix">
   <!ENTITY pluginurl "https://raw.githubusercontent.com/xenomorphik/anker-solix-unraid/main/anker-solix.plg">
 ]>
@@ -10,6 +10,8 @@
 <plugin name="&name;" author="&author;" version="&version;" launch="&launch;" pluginurl="&pluginurl;" min="6.9.0">
 
 <CHANGELOG>
+### 2026.09.18.3
+- Fix PHP double-quote variable string interpolation in shell_exec PATH definition.
 ### 2026.09.18.2
 - Fix python path discovery in PHP web server shell execution.
 ### 2026.09.18.1

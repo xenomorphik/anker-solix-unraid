@@ -41,21 +41,27 @@ if ($action === 'test_auth') {
         "$plugin_dir/venv/bin/python3",
         "/usr/bin/python3",
         "/usr/local/bin/python3",
-        "/usr/bin/python"
+        "/usr/bin/python",
+        "/bin/python3"
     ];
 
-    $python = "python3";
+    $python = null;
     foreach ($python_candidates as $candidate) {
-        if (file_exists($candidate) && is_executable($candidate)) {
+        if (@file_exists($candidate) && @is_executable($candidate)) {
             $python = $candidate;
             break;
         }
     }
 
+    if (!$python) {
+        $which_python = trim((string)@shell_exec("command -v python3 || command -v python"));
+        $python = !empty($which_python) ? $which_python : "/usr/bin/python3";
+    }
+
     $client_script = "$plugin_dir/solix_client.py";
 
     $cmd = sprintf(
-        "export PATH=$PATH:/usr/local/bin:/usr/bin:/bin; %s %s --test-auth --user %s --password %s --country %s 2>&1",
+        "PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin %s %s --test-auth --user %s --password %s --country %s 2>&1",
         escapeshellcmd($python),
         escapeshellarg($client_script),
         escapeshellarg($user),
