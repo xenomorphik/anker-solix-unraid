@@ -4,7 +4,7 @@
   <!ENTITY author    "Conductor Architect">
   <!ENTITY version   "2026.08.28">
   <!ENTITY launch    "Settings/AnkerSolix">
-  <!ENTITY pluginurl "https://raw.githubusercontent.com/user/anker-solix-unraid/main/anker-solix.plg">
+  <!ENTITY pluginurl "https://raw.githubusercontent.com/xenomorphik/anker-solix-unraid/main/anker-solix.plg">
 ]>
 
 <plugin name="&name;" author="&author;" version="&version;" launch="&launch;" pluginurl="&pluginurl;" min="6.9.0">
@@ -24,7 +24,7 @@ mkdir -p /tmp/&name;
 
 <!-- Main plugin package installation -->
 <FILE Name="/boot/config/plugins/&name;/&name;-&version;.txz" Run="upkg">
-<URL>https://github.com/user/anker-solix-unraid/releases/download/v&version;/&name;-&version;.txz</URL>
+<URL>https://github.com/xenomorphik/anker-solix-unraid/releases/download/v&version;/&name;-&version;.txz</URL>
 </FILE>
 
 <!-- Post-installation script to start monitoring daemon -->
