@@ -78,7 +78,19 @@ if ($action === 'test_auth') {
     );
 
     $output = shell_exec($cmd);
-    $result = json_decode($output, true);
+    
+    // Find valid JSON payload in output lines
+    $result = null;
+    if ($output) {
+        $lines = array_filter(array_map('trim', explode("\n", (string)$output)));
+        foreach (array_reverse($lines) as $line) {
+            $decoded = json_decode($line, true);
+            if (is_array($decoded)) {
+                $result = $decoded;
+                break;
+            }
+        }
+    }
 
     if (is_array($result)) {
         echo json_encode($result);

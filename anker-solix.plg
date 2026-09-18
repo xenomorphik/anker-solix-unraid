@@ -2,7 +2,7 @@
 <!DOCTYPE PLUGIN [
   <!ENTITY name      "anker-solix">
   <!ENTITY author    "Conductor Architect">
-  <!ENTITY version   "2026.09.18.4">
+  <!ENTITY version   "2026.09.18.5">
   <!ENTITY launch    "Settings/AnkerSolix">
   <!ENTITY pluginurl "https://raw.githubusercontent.com/xenomorphik/anker-solix-unraid/main/anker-solix.plg">
 ]>
@@ -10,6 +10,8 @@
 <plugin name="&name;" author="&author;" version="&version;" launch="&launch;" pluginurl="&pluginurl;" min="6.9.0">
 
 <CHANGELOG>
+### 2026.09.18.5
+- Fix JSON line extraction in PHP to ignore stdout log header output.
 ### 2026.09.18.4
 - Add auto-installation of Python 3 package for Unraid systems missing python3.
 ### 2026.09.18.3

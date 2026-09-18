@@ -116,6 +116,10 @@ class SolixClient:
 if __name__ == '__main__':
     import argparse
     import asyncio
+    import sys
+
+    # Direct log messages to stderr so stdout remains pure JSON
+    logging.basicConfig(level=logging.ERROR, stream=sys.stderr)
 
     parser = argparse.ArgumentParser(description="Anker Solix API Client Utilities")
     parser.add_argument("--test-auth", action="store_true", help="Test authentication credentials")
