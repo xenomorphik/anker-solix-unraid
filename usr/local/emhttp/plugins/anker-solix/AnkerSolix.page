@@ -1,6 +1,6 @@
-Menu="OtherSettings"
+Menu="Utilities"
 Title="Anker Solix"
-Icon="anker-solix.png"
+Icon="bolt"
 ---
 <?php
 $plugin = "anker-solix";
@@ -22,31 +22,6 @@ $status = json_decode(@file_get_contents($status_file), true) ?: [
 
 $is_online = ($status['status'] === 'ONLINE' || ($status['grid_connected'] ?? true));
 ?>
-
-<style>
-.solix-metric-box {
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: 6px;
-  padding: 12px 16px;
-  margin-bottom: 12px;
-  border-left: 4px solid #4CAF50;
-}
-.solix-metric-box.warning {
-  border-left-color: #f39c12;
-}
-.solix-metric-box.danger {
-  border-left-color: #e74c3c;
-}
-.solix-metric-val {
-  font-size: 1.4em;
-  font-weight: bold;
-}
-.solix-label {
-  font-size: 0.9em;
-  opacity: 0.8;
-  margin-bottom: 4px;
-}
-</style>
 
 <div class="row">
   <div class="col-md-6">
