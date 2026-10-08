@@ -69,7 +69,6 @@ class SolixDaemon:
     def __init__(self, config_path="/boot/config/plugins/anker-solix/anker-solix.cfg", status_path="/tmp/anker-solix/status.json"):
         self.config_path = config_path
         self.status_path = status_path
-        self.client = SolixClient()
         self.evaluator = PowerMonitorEvaluator()
 
     def read_config(self):
@@ -97,24 +96,36 @@ class SolixDaemon:
     async def run(self):
         logger.info("Starting Anker Solix monitoring daemon...")
         while True:
-            cfg = self.read_config()
-            self.evaluator.time_limit_minutes = int(cfg.get("TIME_LIMIT_MIN", 10))
-            self.evaluator.battery_threshold_percent = int(cfg.get("BATTERY_LIMIT_PCT", 20))
-            
-            telemetry = await self.client.fetch_latest_telemetry()
-            evaluation = self.evaluator.evaluate(telemetry)
+            try:
+                cfg = self.read_config()
+                self.evaluator.time_limit_minutes = int(cfg.get("TIME_LIMIT_MIN", 10))
+                self.evaluator.battery_threshold_percent = int(cfg.get("BATTERY_LIMIT_PCT", 20))
 
-            telemetry.update({
-                "evaluation": evaluation,
-                "timestamp": int(time.time())
-            })
-            self.write_status(telemetry)
+                client = SolixClient(
+                    username=cfg.get("ANKERUSER", ""),
+                    password=cfg.get("ANKERPASSWORD", ""),
+                    country=cfg.get("ANKERCOUNTRY", "us")
+                )
 
-            if evaluation["should_shutdown"]:
-                logger.critical(f"SHUTDOWN TRIGGERED: {evaluation['reason']}")
-                # In production daemon, invoke shutdown_handler.py here
+                telemetry = await client.fetch_latest_telemetry()
+                evaluation = self.evaluator.evaluate(telemetry)
 
-            await asyncio.sleep(int(cfg.get("POLL_INTERVAL", 30)))
+                telemetry.update({
+                    "evaluation": evaluation,
+                    "timestamp": int(time.time())
+                })
+                self.write_status(telemetry)
+
+                if evaluation["should_shutdown"]:
+                    logger.critical(f"SHUTDOWN TRIGGERED: {evaluation['reason']}")
+                    # If shutdown triggered, invoke shutdown handler
+                    os.system("python3 /usr/local/emhttp/plugins/anker-solix/shutdown_handler.py &")
+
+            except Exception as e:
+                logger.error(f"Error in daemon cycle: {e}")
+
+            poll_sec = int(cfg.get("POLL_INTERVAL", 30)) if 'cfg' in locals() else 30
+            await asyncio.sleep(max(poll_sec, 5))
 
 
 if __name__ == '__main__':

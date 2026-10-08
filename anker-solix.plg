@@ -2,7 +2,7 @@
 <!DOCTYPE PLUGIN [
   <!ENTITY name      "anker-solix">
   <!ENTITY author    "Conductor Architect">
-  <!ENTITY version   "2026.09.18.5">
+  <!ENTITY version   "2026.09.18.6">
   <!ENTITY launch    "Settings/AnkerSolix">
   <!ENTITY pluginurl "https://raw.githubusercontent.com/xenomorphik/anker-solix-unraid/main/anker-solix.plg">
 ]>
@@ -10,6 +10,10 @@
 <plugin name="&name;" author="&author;" version="&version;" launch="&launch;" pluginurl="&pluginurl;" min="6.9.0">
 
 <CHANGELOG>
+### 2026.09.18.6
+- Pass active Anker credentials dynamically into daemon polling cycle.
+- Fix Python SSL library compatibility (openssl-solibs-1.1.1m) on Unraid.
+- Ensure monitoring daemon runs cleanly in detached background context.
 ### 2026.09.18.5
 - Fix JSON line extraction in PHP to ignore stdout log header output.
 ### 2026.09.18.4
@@ -31,6 +35,17 @@
 <INLINE>
 mkdir -p /boot/config/plugins/&name;
 mkdir -p /tmp/&name;
+
+# Ensure OpenSSL 1.1 compatibility libraries are present for Python 3.9
+if ! python3 -c "import ssl" &amp;&gt;/dev/null; then
+    echo "Configuring SSL libraries for Python 3 on Unraid..."
+    OPENSSL_PKG="openssl-solibs-1.1.1m-x86_64-1.txz"
+    OPENSSL_URL="https://slackware.uk/slackware/slackware64-15.0/slackware64/a/${OPENSSL_PKG}"
+    if [ ! -f "/boot/config/plugins/&name;/${OPENSSL_PKG}" ]; then
+        curl -sSL "$OPENSSL_URL" -o "/boot/config/plugins/&name;/${OPENSSL_PKG}"
+    fi
+    installpkg "/boot/config/plugins/&name;/${OPENSSL_PKG}"
+fi
 
 # Ensure Python 3 is installed on Unraid
 if ! command -v python3 &amp;&gt;/dev/null; then
@@ -54,12 +69,12 @@ fi
 <FILE Run="/bin/bash">
 <INLINE>
 echo "Initializing Anker Solix Plugin..."
+pkill -f "solix_daemon.py" || true
 if [ -f /usr/local/emhttp/plugins/&name;/solix_daemon.py ]; then
     if [ ! -d /usr/local/emhttp/plugins/&name;/venv ]; then
         python3 -m venv /usr/local/emhttp/plugins/&name;/venv
-        /usr/local/emhttp/plugins/&name;/venv/bin/pip install --quiet anker-solix-api aiohttp || true
     fi
-    /usr/local/emhttp/plugins/&name;/venv/bin/python3 /usr/local/emhttp/plugins/&name;/solix_daemon.py &amp;
+    (/usr/local/emhttp/plugins/&name;/venv/bin/python3 /usr/local/emhttp/plugins/&name;/solix_daemon.py &lt;/dev/null &gt;/dev/null 2&gt;&amp;1 &amp;)
 fi
 </INLINE>
 </FILE>
