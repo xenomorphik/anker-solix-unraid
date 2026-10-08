@@ -120,6 +120,7 @@ class SolixDaemon:
             res = subprocess.run(["docker", "inspect", "-f", "{{.State.Running}}", "anker-solix-poller"], capture_output=True, text=True)
             if res.returncode != 0 or res.stdout.strip() != "true":
                 logger.info("Starting anker-solix-poller container...")
+                subprocess.run(["docker", "rm", "-f", "anker-solix-poller"], capture_output=True, check=False)
                 subprocess.run([
                     "docker", "run", "-d", "--name", "anker-solix-poller", "--restart", "unless-stopped",
                     "-v", "/boot/config/plugins/anker-solix/anker-solix.cfg:/boot/config/plugins/anker-solix/anker-solix.cfg:ro",

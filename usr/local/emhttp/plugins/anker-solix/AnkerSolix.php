@@ -37,17 +37,13 @@ if ($action === 'test_auth') {
         exit;
     }
 
-    // Test authentication inside Docker container where Python 3.12 and anker_solix_api are installed
-    $py_code = sprintf(
-        "import asyncio, aiohttp, json; from anker_solix_api import api; async def t(): async with aiohttp.ClientSession() as s: a = api.AnkerSolixApi(%s, %s, %s, websession=s); res = await a.update_sites(); print(json.dumps({'success': True, 'message': 'Authentication successful. Found %%d bound devices.' %% len(a.devices)})); asyncio.run(t())",
-        var_export($user, true),
-        var_export($pass, true),
-        var_export($country, true)
-    );
-
+    $script_path = "/usr/local/emhttp/plugins/anker-solix/test_auth.py";
     $cmd = sprintf(
-        "docker run --rm anker-solix-poller:latest python3 -c %s 2>&1",
-        escapeshellarg($py_code)
+        "docker run --rm -v %s:/app/test_auth.py:ro anker-solix-poller:latest python3 /app/test_auth.py --user %s --password %s --country %s 2>&1",
+        escapeshellarg($script_path),
+        escapeshellarg($user),
+        escapeshellarg($pass),
+        escapeshellarg($country)
     );
 
     $output = shell_exec($cmd);
@@ -68,7 +64,7 @@ if ($action === 'test_auth') {
     } else {
         echo json_encode([
             "success" => false,
-            "message" => "Auth failed: " . ($output ?: "Could not authenticate with Anker Cloud")
+            "message" => "Auth test failed: " . ($output ?: "Unknown error")
         ]);
     }
     exit;
