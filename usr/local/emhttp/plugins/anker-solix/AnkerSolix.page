@@ -1,5 +1,5 @@
-Menu="Utilities"
-Title="Anker Solix Power Monitor"
+Menu="OtherSettings"
+Title="Anker Solix"
 Icon="anker-solix.png"
 ---
 <?php
@@ -23,11 +23,36 @@ $status = json_decode(@file_get_contents($status_file), true) ?: [
 $is_online = ($status['status'] === 'ONLINE' || ($status['grid_connected'] ?? true));
 ?>
 
+<style>
+.solix-metric-box {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 6px;
+  padding: 12px 16px;
+  margin-bottom: 12px;
+  border-left: 4px solid #4CAF50;
+}
+.solix-metric-box.warning {
+  border-left-color: #f39c12;
+}
+.solix-metric-box.danger {
+  border-left-color: #e74c3c;
+}
+.solix-metric-val {
+  font-size: 1.4em;
+  font-weight: bold;
+}
+.solix-label {
+  font-size: 0.9em;
+  opacity: 0.8;
+  margin-bottom: 4px;
+}
+</style>
+
 <div class="row">
   <div class="col-md-6">
     <div class="panel panel-default">
       <div class="panel-heading">
-        <h3 class="panel-title">Live System Telemetry</h3>
+        <h3 class="panel-title"><i class="fa fa-bolt"></i> Live Anker Solix Status</h3>
       </div>
       <div class="panel-body">
         <table class="table">
@@ -36,7 +61,7 @@ $is_online = ($status['status'] === 'ONLINE' || ($status['grid_connected'] ?? tr
             <td><strong><?=htmlspecialchars($status['device_name'] ?? 'SOLIX S2000')?></strong> (<?=htmlspecialchars($status['device_pn'] ?? 'AS220')?>)</td>
           </tr>
           <tr>
-            <td><strong>Line / Grid Status:</strong></td>
+            <td><strong>Power State:</strong></td>
             <td>
               <?php if ($is_online): ?>
                 <span class="label label-success">ONLINE (Grid Connected)</span>
@@ -47,27 +72,36 @@ $is_online = ($status['status'] === 'ONLINE' || ($status['grid_connected'] ?? tr
           </tr>
           <tr>
             <td><strong>Battery Charge (SOC):</strong></td>
-            <td><strong style="font-size: 1.2em; color: <?=($status['battery_soc'] > 20 ? '#27ae60' : '#e74c3c')?>;"><?=intval($status['battery_soc'])?>%</strong> (Health: <?=intval($status['battery_soh'] ?? 100)?>%)</td>
+            <td>
+              <strong style="font-size: 1.25em; color: <?=($status['battery_soc'] > 20 ? '#27ae60' : '#e74c3c')?>;">
+                <?=intval($status['battery_soc'])?>%
+              </strong>
+              (Health: <?=intval($status['battery_soh'] ?? 100)?>%)
+            </td>
           </tr>
           <tr>
             <td><strong>Grid Input Power:</strong></td>
             <td><?=floatval($status['input_power_w'])?> W</td>
           </tr>
           <tr>
-            <td><strong>AC Output / Server Load:</strong></td>
+            <td><strong>Server / AC Load:</strong></td>
             <td><strong><?=floatval($status['output_power_w'])?> W</strong></td>
           </tr>
           <tr>
-            <td><strong>Estimated Runtime Left:</strong></td>
-            <td><?=round(floatval($status['time_left_min']))?> Minutes (<?=round(floatval($status['time_left_min'])/60, 1)?> hrs)</td>
+            <td><strong>Estimated Runtime:</strong></td>
+            <td><strong><?=round(floatval($status['time_left_min']))?> min</strong> (~<?=round(floatval($status['time_left_min'])/60, 1)?> hrs)</td>
           </tr>
           <tr>
             <td><strong>Internal Temperature:</strong></td>
             <td><?=floatval($status['temperature_c'])?> &deg;C</td>
           </tr>
           <tr>
+            <td><strong>apcupsd NIS Bridge:</strong></td>
+            <td><span class="label label-success">Active on 127.0.0.1:3551</span></td>
+          </tr>
+          <tr>
             <td><strong>Last Telemetry Sync:</strong></td>
-            <td><?=htmlspecialchars($status['timestamp'] ?? 'N/A')?></td>
+            <td><small><?=htmlspecialchars($status['timestamp'] ?? 'N/A')?></small></td>
           </tr>
         </table>
       </div>
@@ -77,41 +111,43 @@ $is_online = ($status['status'] === 'ONLINE' || ($status['grid_connected'] ?? tr
   <div class="col-md-6">
     <form markdown="1" method="POST" action="/update.php" target="progressFrame">
       <input type="hidden" name="#file" value="<?=$cfg_file?>">
+      <input type="hidden" name="#include" value="/plugins/anker-solix/include/update.anker-solix.php">
       
       <div class="panel panel-default">
         <div class="panel-heading">
-          <h3 class="panel-title">Anker Solix Credentials & Thresholds</h3>
+          <h3 class="panel-title"><i class="fa fa-sliders"></i> Plugin Settings & Credentials</h3>
         </div>
         <div class="panel-body">
           <p>
             <label>Anker Account Email / Username:</label>
-            <input type="email" name="ANKERUSER" value="<?=htmlspecialchars($cfg['ANKERUSER'] ?? '')?>" placeholder="user@example.com" required>
+            <input type="email" name="ANKERUSER" value="<?=htmlspecialchars($cfg['ANKERUSER'] ?? '')?>" placeholder="user@example.com" class="form-control" style="width:100%; max-width:320px;" required>
           </p>
           <p>
             <label>Anker Account Password:</label>
-            <input type="password" name="ANKERPASSWORD" value="<?=htmlspecialchars($cfg['ANKERPASSWORD'] ?? '')?>" required>
+            <input type="password" name="ANKERPASSWORD" value="<?=htmlspecialchars($cfg['ANKERPASSWORD'] ?? '')?>" class="form-control" style="width:100%; max-width:320px;" required>
           </p>
           <p>
             <label>Anker Country Code:</label>
-            <input type="text" name="ANKERCOUNTRY" value="<?=htmlspecialchars($cfg['ANKERCOUNTRY'] ?? 'us')?>" size="4" required>
+            <input type="text" name="ANKERCOUNTRY" value="<?=htmlspecialchars($cfg['ANKERCOUNTRY'] ?? 'us')?>" size="4" class="form-control" style="width:60px;" required>
           </p>
           <p>
             <label>Polling Interval (seconds):</label>
-            <input type="number" name="POLL_INTERVAL" value="<?=intval($cfg['POLL_INTERVAL'] ?? 15)?>" min="5" max="300" required>
+            <input type="number" name="POLL_INTERVAL" value="<?=intval($cfg['POLL_INTERVAL'] ?? 15)?>" min="5" max="300" class="form-control" style="width:80px;" required>
           </p>
           <p>
-            <label>Shutdown Delay on Battery (minutes):</label>
-            <input type="number" name="TIME_LIMIT_MIN" value="<?=intval($cfg['TIME_LIMIT_MIN'] ?? 10)?>" min="1" max="120" required>
+            <label>Shutdown Delay on Outage (minutes):</label>
+            <input type="number" name="TIME_LIMIT_MIN" value="<?=intval($cfg['TIME_LIMIT_MIN'] ?? 10)?>" min="1" max="120" class="form-control" style="width:80px;" required>
           </p>
           <p>
-            <label>Minimum Battery % Threshold:</label>
-            <input type="number" name="BATTERY_LIMIT_PCT" value="<?=intval($cfg['BATTERY_LIMIT_PCT'] ?? 20)?>" min="5" max="90" required>
+            <label>Shutdown Minimum Battery %:</label>
+            <input type="number" name="BATTERY_LIMIT_PCT" value="<?=intval($cfg['BATTERY_LIMIT_PCT'] ?? 20)?>" min="5" max="90" class="form-control" style="width:80px;" required>
           </p>
+          <hr>
           <p>
             <input type="submit" value="Apply Settings" class="btn btn-primary">
             <button type="button" id="test-auth-btn" class="btn btn-default" onclick="testAnkerAuth()">Test Credentials</button>
           </p>
-          <div id="auth-test-result" style="display:none; margin-top:10px;"></div>
+          <div id="auth-test-result" style="display:none; margin-top:12px;"></div>
         </div>
       </div>
     </form>
@@ -133,7 +169,7 @@ function testAnkerAuth() {
     }
 
     $btn.prop('disabled', true).text('Testing Login...');
-    $res.removeClass().addClass('alert alert-info').html('Connecting to Anker Solix API...').show();
+    $res.removeClass().addClass('alert alert-info').html('<i class="fa fa-spinner fa-spin"></i> Connecting to Anker Solix API...').show();
 
     $.post('/plugins/anker-solix/AnkerSolix.php?action=test_auth', {
         user: user,
