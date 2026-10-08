@@ -1,12 +1,26 @@
+#!/usr/bin/env python3
+"""
+Anker Solix Daemon for Unraid
+Coordinates:
+1. Docker Telemetry Poller container (anker-solix-poller)
+2. apcupsd NIS Bridge (solix_nis_server.py)
+3. Graceful shutdown evaluation
+"""
+
 import os
 import sys
 import time
 import json
 import logging
-import asyncio
+import subprocess
 
-from solix_client import SolixClient
+from shutdown_handler import ShutdownHandler
 
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s [%(levelname)s] %(message)s',
+    datefmt='%Y-%m-%d %H:%M:%S'
+)
 logger = logging.getLogger("anker_solix.daemon")
 
 
@@ -20,8 +34,10 @@ class PowerMonitorEvaluator:
         if current_time is None:
             current_time = time.time()
 
-        on_battery = telemetry.get("on_battery", False)
-        battery_pct = telemetry.get("battery_percentage", 100)
+        status_str = telemetry.get("status", "ONLINE")
+        grid_connected = telemetry.get("grid_connected", True)
+        on_battery = (status_str == "ONBATT") or (not grid_connected)
+        battery_pct = telemetry.get("battery_soc", telemetry.get("battery_percentage", 100))
 
         if not on_battery:
             self.battery_start_time = None
@@ -70,15 +86,16 @@ class SolixDaemon:
         self.config_path = config_path
         self.status_path = status_path
         self.evaluator = PowerMonitorEvaluator()
+        self.shutdown_handler = ShutdownHandler()
 
     def read_config(self):
         config = {
             "ANKERUSER": "",
             "ANKERPASSWORD": "",
             "ANKERCOUNTRY": "us",
-            "POLL_INTERVAL": 30,
-            "TIME_LIMIT_MIN": 10,
-            "BATTERY_LIMIT_PCT": 20
+            "POLL_INTERVAL": "30",
+            "TIME_LIMIT_MIN": "10",
+            "BATTERY_LIMIT_PCT": "20"
         }
         if os.path.exists(self.config_path):
             with open(self.config_path, "r") as f:
@@ -88,47 +105,62 @@ class SolixDaemon:
                         config[k.strip()] = v.strip().strip('"\'')
         return config
 
-    def write_status(self, data):
-        os.makedirs(os.path.dirname(self.status_path), exist_ok=True)
-        with open(self.status_path, "w") as f:
-            json.dump(data, f, indent=2)
+    def read_status(self):
+        if os.path.exists(self.status_path):
+            try:
+                with open(self.status_path, "r") as f:
+                    return json.load(f)
+            except Exception:
+                pass
+        return {}
 
-    async def run(self):
-        logger.info("Starting Anker Solix monitoring daemon...")
+    def ensure_services(self):
+        # 1. Ensure Docker poller container is running
+        try:
+            res = subprocess.run(["docker", "inspect", "-f", "{{.State.Running}}", "anker-solix-poller"], capture_output=True, text=True)
+            if res.returncode != 0 or res.stdout.strip() != "true":
+                logger.info("Starting anker-solix-poller container...")
+                subprocess.run([
+                    "docker", "run", "-d", "--name", "anker-solix-poller", "--restart", "unless-stopped",
+                    "-v", "/boot/config/plugins/anker-solix/anker-solix.cfg:/boot/config/plugins/anker-solix/anker-solix.cfg:ro",
+                    "-v", "/tmp/anker-solix:/tmp/anker-solix",
+                    "anker-solix-poller:latest"
+                ], check=False)
+        except Exception as e:
+            logger.error(f"Error checking poller container: {e}")
+
+        # 2. Ensure NIS bridge is running
+        try:
+            nis_check = subprocess.run(["pgrep", "-f", "solix_nis_server.py"], capture_output=True, text=True)
+            if nis_check.returncode != 0:
+                logger.info("Starting solix_nis_server.py bridge...")
+                subprocess.Popen(["/usr/bin/python3", "/usr/local/emhttp/plugins/anker-solix/solix_nis_server.py"])
+        except Exception as e:
+            logger.error(f"Error checking NIS bridge: {e}")
+
+    def run(self):
+        logger.info("Starting Anker Solix Supervisor Daemon...")
         while True:
             try:
                 cfg = self.read_config()
                 self.evaluator.time_limit_minutes = int(cfg.get("TIME_LIMIT_MIN", 10))
                 self.evaluator.battery_threshold_percent = int(cfg.get("BATTERY_LIMIT_PCT", 20))
 
-                client = SolixClient(
-                    username=cfg.get("ANKERUSER", ""),
-                    password=cfg.get("ANKERPASSWORD", ""),
-                    country=cfg.get("ANKERCOUNTRY", "us")
-                )
+                self.ensure_services()
 
-                telemetry = await client.fetch_latest_telemetry()
-                evaluation = self.evaluator.evaluate(telemetry)
-
-                telemetry.update({
-                    "evaluation": evaluation,
-                    "timestamp": int(time.time())
-                })
-                self.write_status(telemetry)
-
-                if evaluation["should_shutdown"]:
-                    logger.critical(f"SHUTDOWN TRIGGERED: {evaluation['reason']}")
-                    # If shutdown triggered, invoke shutdown handler
-                    os.system("python3 /usr/local/emhttp/plugins/anker-solix/shutdown_handler.py &")
+                telemetry = self.read_status()
+                if telemetry:
+                    eval_result = self.evaluator.evaluate(telemetry)
+                    if eval_result["should_shutdown"]:
+                        logger.critical(f"SHUTDOWN TRIGGERED: {eval_result['reason']}")
+                        self.shutdown_handler.execute_graceful_shutdown(reason=eval_result["reason"])
 
             except Exception as e:
-                logger.error(f"Error in daemon cycle: {e}")
+                logger.error(f"Error in supervisor loop: {e}")
 
-            poll_sec = int(cfg.get("POLL_INTERVAL", 30)) if 'cfg' in locals() else 30
-            await asyncio.sleep(max(poll_sec, 5))
+            time.sleep(10)
 
 
 if __name__ == '__main__':
-    logging.basicConfig(level=logging.INFO)
     daemon = SolixDaemon()
-    asyncio.run(daemon.run())
+    daemon.run()

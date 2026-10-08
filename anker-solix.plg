@@ -2,7 +2,7 @@
 <!DOCTYPE PLUGIN [
   <!ENTITY name      "anker-solix">
   <!ENTITY author    "Conductor Architect">
-  <!ENTITY version   "2026.09.18.6">
+  <!ENTITY version   "2026.09.18.7">
   <!ENTITY launch    "Settings/AnkerSolix">
   <!ENTITY pluginurl "https://raw.githubusercontent.com/xenomorphik/anker-solix-unraid/main/anker-solix.plg">
 ]>
@@ -10,6 +10,11 @@
 <plugin name="&name;" author="&author;" version="&version;" launch="&launch;" pluginurl="&pluginurl;" min="6.9.0">
 
 <CHANGELOG>
+### 2026.09.18.7
+- Native Unraid apcupsd NIS emulation bridge on TCP port 3551.
+- Docker telemetry sidecar running Python 3.12 with live MQTT streaming for Solix S2000.
+- Real-time battery SOC, grid load, temperature, and runtime estimation.
+- Automatic Unraid dashboard UPS integration and graceful shutdown handler.
 ### 2026.09.18.6
 - Pass active Anker credentials dynamically into daemon polling cycle.
 - Fix Python SSL library compatibility (openssl-solibs-1.1.1m) on Unraid.
@@ -34,6 +39,7 @@
 <FILE Run="/bin/bash">
 <INLINE>
 mkdir -p /boot/config/plugins/&name;
+mkdir -p /boot/config/plugins/&name;/docker
 mkdir -p /tmp/&name;
 
 # Ensure OpenSSL 1.1 compatibility libraries are present for Python 3.9
@@ -65,16 +71,26 @@ fi
 <URL>https://raw.githubusercontent.com/xenomorphik/anker-solix-unraid/main/dist/&name;-&version;.txz</URL>
 </FILE>
 
-<!-- Post-installation script to start monitoring daemon -->
+<!-- Post-installation script to start monitoring daemon and services -->
 <FILE Run="/bin/bash">
 <INLINE>
-echo "Initializing Anker Solix Plugin..."
+echo "Initializing Anker Solix Plugin &amp; UPS Services..."
 pkill -f "solix_daemon.py" || true
-if [ -f /usr/local/emhttp/plugins/&name;/solix_daemon.py ]; then
-    if [ ! -d /usr/local/emhttp/plugins/&name;/venv ]; then
-        python3 -m venv /usr/local/emhttp/plugins/&name;/venv
+pkill -f "solix_nis_server.py" || true
+
+# Copy Docker assets to boot config for persistence
+cp -r /usr/local/emhttp/plugins/&name;/docker/* /boot/config/plugins/&name;/docker/ 2>/dev/null || true
+
+# Build docker poller image if missing
+if ! docker image inspect anker-solix-poller:latest &amp;&gt;/dev/null; then
+    if [ -f /boot/config/plugins/&name;/docker/Dockerfile ]; then
+        docker build -t anker-solix-poller:latest /boot/config/plugins/&name;/docker
     fi
-    (/usr/local/emhttp/plugins/&name;/venv/bin/python3 /usr/local/emhttp/plugins/&name;/solix_daemon.py &lt;/dev/null &gt;/dev/null 2&gt;&amp;1 &amp;)
+fi
+
+# Launch Supervisor Daemon
+if [ -f /usr/local/emhttp/plugins/&name;/solix_daemon.py ]; then
+    (/usr/bin/python3 /usr/local/emhttp/plugins/&name;/solix_daemon.py &lt;/dev/null &gt;/dev/null 2&gt;&amp;1 &amp;)
 fi
 </INLINE>
 </FILE>
@@ -84,6 +100,9 @@ fi
 <INLINE>
 echo "Removing Anker Solix Plugin..."
 pkill -f "solix_daemon.py" || true
+pkill -f "solix_nis_server.py" || true
+docker rm -f anker-solix-poller 2>/dev/null || true
+rm -f /var/run/apcupsd.pid
 rm -rf /usr/local/emhttp/plugins/&name;
 rm -rf /tmp/&name;
 rm -f /boot/config/plugins/&name;/&name;-&version;.txz
