@@ -61,7 +61,7 @@ def handle_client(conn, addr):
         
         # Read telemetry
         model = status_info.get("device_name", "Anker SOLIX S2000")
-        serial = status_info.get("device_sn", "APCE25C0G23700060")
+        serial = status_info.get("device_sn", "UNKNOWN")
         sw_ver = status_info.get("sw_version", "1.0.2.2")
         status_str = status_info.get("status", "ONLINE")
         bcharge = float(status_info.get("battery_soc", 100))
